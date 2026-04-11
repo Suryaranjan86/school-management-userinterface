@@ -1,6 +1,8 @@
-import { Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, TextField, Box, Select, MenuItem, FormControl, InputLabel, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
-import { useState, useEffect } from 'react';
-import { BASE_URL } from '../config';
+import { Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { BASE_URL } from '../../config';
+import AddFee from './AddFee';
 
 function FeeTracking() {
   const [students, setStudents] = useState([]);
@@ -9,42 +11,61 @@ function FeeTracking() {
   const [selectedStudent, setSelectedStudent] = useState('');
   const [fees, setFees] = useState([]);
   const [open, setOpen] = useState(false);
-  const [newFee, setNewFee] = useState({
-    amount: '',
-    paymentDate: '',
-    type: 'Paid',
-    description: ''
-  });
+  const [searchParams] = useSearchParams();
+  const initialized = useRef(false);
 
+  // Initial load of students
   useEffect(() => {
-    fetchStudents();
+    const loadStudents = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}api/students`);
+        if (response.ok) {
+          const data = await response.json();
+          setStudents(data);
+        } else {
+          console.error('Failed to fetch students');
+        }
+      } catch (error) {
+        console.error('Error fetching students:', error);
+      }
+    };
+    loadStudents();
   }, []);
 
-  const fetchStudents = async () => {
-    try {
-      const response = await fetch(`${BASE_URL}api/students`);
-      if (response.ok) {
-        const data = await response.json();
-        setStudents(data);
-      } else {
-        console.error('Failed to fetch students');
+  // Handle URL parameter auto-selection after students are loaded
+  useEffect(() => {
+    if (students.length > 0 && !initialized.current) {
+      const studentId = searchParams.get('studentId');
+      const classId = searchParams.get('class');
+      const batch = searchParams.get('batch');
+
+      if (studentId) {
+        setSelectedStudent(studentId);
+        if (classId) {
+          setSelectedClass(classId);
+        }
+        if (batch) {
+          setSelectedBatch(batch);
+        }
+        fetchFees(studentId);
+        initialized.current = true;
       }
-    } catch (error) {
-      console.error('Error fetching students:', error);
     }
-  };
+  }, [students]);
 
   const fetchFees = async (studentId) => {
     try {
-      const response = await fetch(`${BASE_URL}api/fees/student/${studentId}`);
+      const response = await fetch(`${BASE_URL}api/fee-payments`);
       if (response.ok) {
         const data = await response.json();
-        setFees(data);
+        // Filter fees for the selected student
+        const studentFees = data.filter(fee => fee.student && fee.student.id === studentId);
+        setFees(studentFees);
       } else {
-        console.error('Failed to fetch fees');
+        console.error('Failed to fetch fee payments');
       }
     } catch (error) {
-      console.error('Error fetching fees:', error);
+      console.error('Error fetching fee payments:', error);
     }
   };
 
@@ -70,26 +91,17 @@ function FeeTracking() {
     }
   };
 
-  const handleAddFee = async () => {
-    try {
-      const feeData = { ...newFee, student: { id: selectedStudent } };
-      const response = await fetch(`${BASE_URL}api/fees`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(feeData),
-      });
-      if (response.ok) {
-        console.log('Fee added successfully');
-        setOpen(false);
-        setNewFee({ amount: '', paymentDate: '', type: 'Paid', description: '' });
-        fetchFees(selectedStudent);
-      } else {
-        console.error('Failed to add fee');
-      }
-    } catch (error) {
-      console.error('Error:', error);
+  const handleOpenDialog = () => {
+    setOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpen(false);
+  };
+
+  const handleFeeAdded = () => {
+    if (selectedStudent) {
+      fetchFees(selectedStudent);
     }
   };
 
@@ -110,9 +122,6 @@ function FeeTracking() {
   if (selectedBatch) {
     filteredStudents = filteredStudents.filter(student => student.batch === selectedBatch);
   }
-
-  const totalPaid = fees.filter(fee => fee.type === 'Paid').reduce((sum, fee) => sum + parseFloat(fee.amount || 0), 0);
-  const totalOutstanding = fees.filter(fee => fee.type === 'Outstanding').reduce((sum, fee) => sum + parseFloat(fee.amount || 0), 0);
 
   return (
     <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', p: 2 }}>
@@ -173,91 +182,46 @@ function FeeTracking() {
           </FormControl>
           <Button
             variant="contained"
-            onClick={() => setOpen(true)}
+            onClick={handleOpenDialog}
             disabled={!selectedStudent}
             sx={{ bgcolor: '#7d3bed', '&:hover': { bgcolor: '#6a2fb8' } }}
           >
             Add Fee
           </Button>
         </Box>
-        {selectedStudent && (
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="h6">Total Paid: ${totalPaid.toFixed(2)}</Typography>
-            <Typography variant="h6">Total Outstanding: ${totalOutstanding.toFixed(2)}</Typography>
-          </Box>
-        )}
         <TableContainer component={Paper} sx={{ borderRadius: 1 }}>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Amount</TableCell>
+                <TableCell>Pay Month</TableCell>
+                <TableCell>Pay Year</TableCell>
                 <TableCell>Payment Date</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Description</TableCell>
+                <TableCell>Transaction ID</TableCell>
+                <TableCell>Mode of Payment</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {fees.map((fee) => (
                 <TableRow key={fee.id}>
-                  <TableCell>${fee.amount}</TableCell>
+                  <TableCell>{fee.payMonth}</TableCell>
+                  <TableCell>{fee.payYear}</TableCell>
                   <TableCell>{fee.paymentDate}</TableCell>
-                  <TableCell>{fee.type}</TableCell>
-                  <TableCell>{fee.description}</TableCell>
+                  <TableCell>{fee.transactionId}</TableCell>
+                  <TableCell>{fee.modeOfPay}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
-        <Dialog open={open} onClose={() => setOpen(false)}>
-          <DialogTitle>Add Fee</DialogTitle>
-          <DialogContent>
-            <TextField
-              label="Amount"
-              name="amount"
-              type="number"
-              value={newFee.amount}
-              onChange={(e) => setNewFee({ ...newFee, amount: e.target.value })}
-              fullWidth
-              sx={{ mt: 2, bgcolor: 'white', borderRadius: 1 }}
-            />
-            <TextField
-              label="Payment Date"
-              name="paymentDate"
-              type="date"
-              value={newFee.paymentDate}
-              onChange={(e) => setNewFee({ ...newFee, paymentDate: e.target.value })}
-              fullWidth
-              sx={{ mt: 2, bgcolor: 'white', borderRadius: 1 }}
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-            <FormControl fullWidth sx={{ mt: 2 }}>
-              <InputLabel>Type</InputLabel>
-              <Select
-                name="type"
-                value={newFee.type}
-                onChange={(e) => setNewFee({ ...newFee, type: e.target.value })}
-                sx={{ bgcolor: 'white', borderRadius: 1 }}
-              >
-                <MenuItem value="Paid">Paid</MenuItem>
-                <MenuItem value="Outstanding">Outstanding</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField
-              label="Description"
-              name="description"
-              value={newFee.description}
-              onChange={(e) => setNewFee({ ...newFee, description: e.target.value })}
-              fullWidth
-              sx={{ mt: 2, bgcolor: 'white', borderRadius: 1 }}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={handleAddFee}>Add</Button>
-          </DialogActions>
-        </Dialog>
+        <AddFee
+          open={open}
+          onClose={handleCloseDialog}
+          selectedStudent={selectedStudent}
+          selectedClass={selectedClass}
+          selectedBatch={selectedBatch}
+          students={students}
+          onFeeAdded={handleFeeAdded}
+        />
       </Container>
     </Box>
   );

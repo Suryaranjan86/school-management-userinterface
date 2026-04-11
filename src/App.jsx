@@ -11,7 +11,7 @@ import EditTeacher from './pages/TeacherManagement/EditTeacher';
 import ListStudents from './pages/StudentManagement/ListStudents';
 import AddStudent from './pages/StudentManagement/AddStudent';
 import EditStudent from './pages/StudentManagement/EditStudent';
-import FeeTracking from './pages/FeeTracking';
+import FeeTracking from './pages/FeeManagement/FeeTracking';
 import Payroll from './pages/Payroll';
 import Attendance from './pages/Attendance';
 import Leave from './pages/Leave';

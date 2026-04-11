@@ -1,6 +1,6 @@
 import { Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, TextField, Box, Chip, Checkbox, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { BASE_URL } from '../../config';
 
 function ListStudents() {
@@ -160,6 +160,7 @@ function ListStudents() {
                 <TableCell>Batch</TableCell>
                 <TableCell>Class</TableCell>
                 <TableCell>School</TableCell>
+                <TableCell>Fee</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -180,6 +181,20 @@ function ListStudents() {
                   <TableCell>{student.batch}</TableCell>
                   <TableCell>{student.cls ? student.cls.name : ''}</TableCell>
                   <TableCell>{student.school ? student.school.name : ''}</TableCell>
+                  <TableCell>
+                    <RouterLink
+                      to={`/fees?studentId=${student.id}&class=${student.cls?.id || ''}&batch=${student.batch || ''}`}
+                      style={{
+                        color: '#7d3bed',
+                        cursor: 'pointer',
+                        textDecoration: 'none'
+                      }}
+                      onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                      onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                    >
+                      View Fee
+                    </RouterLink>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
