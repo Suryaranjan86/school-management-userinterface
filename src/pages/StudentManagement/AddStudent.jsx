@@ -1,7 +1,7 @@
 import { Container, Typography, Button, TextField, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BASE_URL } from '../../config';
+import { apiGet, apiPost } from '../../api';
 
 function AddStudent() {
   const [newStudent, setNewStudent] = useState({
@@ -26,13 +26,8 @@ function AddStudent() {
 
   const fetchClasses = async () => {
     try {
-      const response = await fetch(`${BASE_URL}api/classes`);
-      if (response.ok) {
-        const data = await response.json();
-        setClasses(data);
-      } else {
-        console.error('Failed to fetch classes');
-      }
+      const data = await apiGet('api/classes');
+      setClasses(data);
     } catch (error) {
       console.error('Error fetching classes:', error);
     }
@@ -40,13 +35,8 @@ function AddStudent() {
 
   const fetchSchools = async () => {
     try {
-      const response = await fetch(`${BASE_URL}api/schools`);
-      if (response.ok) {
-        const data = await response.json();
-        setSchools(data);
-      } else {
-        console.error('Failed to fetch schools');
-      }
+      const data = await apiGet('api/schools');
+      setSchools(data);
     } catch (error) {
       console.error('Error fetching schools:', error);
     }
@@ -58,19 +48,9 @@ function AddStudent() {
 
   const handleAddStudent = async () => {
     try {
-      const response = await fetch(`${BASE_URL}api/students`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newStudent),
-      });
-      if (response.ok) {
-        console.log('Student added successfully');
-        navigate('/students');
-      } else {
-        console.error('Failed to add student');
-      }
+      await apiPost('api/students', newStudent);
+      console.log('Student added successfully');
+      navigate('/students');
     } catch (error) {
       console.error('Error:', error);
     }

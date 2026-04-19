@@ -1,7 +1,7 @@
 import { Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { BASE_URL } from '../../config';
+import { apiGet } from '../../api';
 import AddFee from './AddFee';
 
 function FeeTracking() {
@@ -18,13 +18,8 @@ function FeeTracking() {
   useEffect(() => {
     const loadStudents = async () => {
       try {
-        const response = await fetch(`${BASE_URL}api/students`);
-        if (response.ok) {
-          const data = await response.json();
-          setStudents(data);
-        } else {
-          console.error('Failed to fetch students');
-        }
+        const data = await apiGet('api/students');
+        setStudents(data);
       } catch (error) {
         console.error('Error fetching students:', error);
       }
@@ -55,15 +50,10 @@ function FeeTracking() {
 
   const fetchFees = async (studentId) => {
     try {
-      const response = await fetch(`${BASE_URL}api/fee-payments`);
-      if (response.ok) {
-        const data = await response.json();
-        // Filter fees for the selected student
-        const studentFees = data.filter(fee => fee.student && fee.student.id === studentId);
-        setFees(studentFees);
-      } else {
-        console.error('Failed to fetch fee payments');
-      }
+      const data = await apiGet('api/fee-payments');
+      // Filter fees for the selected student
+      const studentFees = data.filter(fee => fee.student && fee.student.id === studentId);
+      setFees(studentFees);
     } catch (error) {
       console.error('Error fetching fee payments:', error);
     }

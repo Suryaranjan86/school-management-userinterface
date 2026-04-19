@@ -1,7 +1,7 @@
 import { Container, Typography, Button, TextField, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BASE_URL } from '../../config';
+import { apiGet, apiPut } from '../../api';
 
 function EditTeacher() {
   const { id } = useParams();
@@ -80,13 +80,8 @@ function EditTeacher() {
 
   const fetchTeacher = async () => {
     try {
-      const response = await fetch(`${BASE_URL}api/teachers/${id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setTeacher(data);
-      } else {
-        console.error('Failed to fetch teacher');
-      }
+      const data = await apiGet(`api/teachers/${id}`);
+      setTeacher(data);
     } catch (error) {
       console.error('Error fetching teacher:', error);
     }
@@ -98,19 +93,9 @@ function EditTeacher() {
 
   const handleUpdateTeacher = async () => {
     try {
-      const response = await fetch(`${BASE_URL}api/teachers/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(teacher),
-      });
-      if (response.ok) {
-        console.log('Teacher updated successfully');
-        navigate('/teachers');
-      } else {
-        console.error('Failed to update teacher');
-      }
+      await apiPut(`api/teachers/${id}`, teacher);
+      console.log('Teacher updated successfully');
+      navigate('/teachers');
     } catch (error) {
       console.error('Error:', error);
     }

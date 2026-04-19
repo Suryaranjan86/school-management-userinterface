@@ -1,6 +1,6 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl, InputLabel, Select, MenuItem, Button } from '@mui/material';
 import { useState } from 'react';
-import { BASE_URL } from '../../config';
+import { apiPost } from '../../api';
 
 function AddFee({ open, onClose, selectedStudent, selectedClass, selectedBatch, onFeeAdded, students }) {
   const [newFee, setNewFee] = useState({
@@ -20,28 +20,18 @@ function AddFee({ open, onClose, selectedStudent, selectedClass, selectedBatch, 
         classId: selectedClass,
         batch: selectedBatch
       };
-      const response = await fetch(`${BASE_URL}api/fee-payments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(feeData),
+      await apiPost('api/fee-payments', feeData);
+      console.log('Fee payment added successfully');
+      setNewFee({
+        studentId: '',
+        payMonth: '',
+        payYear: '',
+        paymentDate: '',
+        transactionId: '',
+        modeOfPay: 'ONLINE'
       });
-      if (response.ok) {
-        console.log('Fee payment added successfully');
-        setNewFee({
-          studentId: '',
-          payMonth: '',
-          payYear: '',
-          paymentDate: '',
-          transactionId: '',
-          modeOfPay: 'ONLINE'
-        });
-        onFeeAdded();
-        onClose();
-      } else {
-        console.error('Failed to add fee payment');
-      }
+      onFeeAdded();
+      onClose();
     } catch (error) {
       console.error('Error:', error);
     }

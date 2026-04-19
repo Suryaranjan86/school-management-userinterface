@@ -1,7 +1,7 @@
 import { Container, Typography, Button, TextField, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BASE_URL } from '../../config';
+import { apiGet, apiPut } from '../../api';
 
 function EditStudent() {
   const { id } = useParams();
@@ -28,17 +28,12 @@ function EditStudent() {
 
   const fetchStudent = async () => {
     try {
-      const response = await fetch(`${BASE_URL}api/students/${id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setStudent({
-          ...data,
-          cls_id: data.cls ? data.cls.id : '',
-          school_id: data.school ? data.school.id : ''
-        });
-      } else {
-        console.error('Failed to fetch student');
-      }
+      const data = await apiGet(`api/students/${id}`);
+      setStudent({
+        ...data,
+        cls_id: data.cls ? data.cls.id : '',
+        school_id: data.school ? data.school.id : ''
+      });
     } catch (error) {
       console.error('Error fetching student:', error);
     }
@@ -46,13 +41,8 @@ function EditStudent() {
 
   const fetchClasses = async () => {
     try {
-      const response = await fetch(`${BASE_URL}api/classes`);
-      if (response.ok) {
-        const data = await response.json();
-        setClasses(data);
-      } else {
-        console.error('Failed to fetch classes');
-      }
+      const data = await apiGet('api/classes');
+      setClasses(data);
     } catch (error) {
       console.error('Error fetching classes:', error);
     }
@@ -60,13 +50,8 @@ function EditStudent() {
 
   const fetchSchools = async () => {
     try {
-      const response = await fetch(`${BASE_URL}api/schools`);
-      if (response.ok) {
-        const data = await response.json();
-        setSchools(data);
-      } else {
-        console.error('Failed to fetch schools');
-      }
+      const data = await apiGet('api/schools');
+      setSchools(data);
     } catch (error) {
       console.error('Error fetching schools:', error);
     }
@@ -78,19 +63,9 @@ function EditStudent() {
 
   const handleUpdateStudent = async () => {
     try {
-      const response = await fetch(`${BASE_URL}api/students/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(student),
-      });
-      if (response.ok) {
-        console.log('Student updated successfully');
-        navigate('/students');
-      } else {
-        console.error('Failed to update student');
-      }
+      await apiPut(`api/students/${id}`, student);
+      console.log('Student updated successfully');
+      navigate('/students');
     } catch (error) {
       console.error('Error:', error);
     }

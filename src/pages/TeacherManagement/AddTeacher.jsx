@@ -1,7 +1,7 @@
 import { Container, Typography, Button, TextField, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BASE_URL } from '../../config';
+import { apiPost } from '../../api';
 
 function AddTeacher() {
   const [newTeacher, setNewTeacher] = useState({
@@ -79,19 +79,9 @@ function AddTeacher() {
 
   const handleAddTeacher = async () => {
     try {
-      const response = await fetch(`${BASE_URL}api/teachers`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newTeacher),
-      });
-      if (response.ok) {
-        console.log('Teacher added successfully');
-        navigate('/teachers');
-      } else {
-        console.error('Failed to add teacher');
-      }
+      await apiPost('api/teachers', newTeacher);
+      console.log('Teacher added successfully');
+      navigate('/teachers');
     } catch (error) {
       console.error('Error:', error);
     }

@@ -1,7 +1,7 @@
 import { Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, TextField, Box, Chip, Checkbox } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BASE_URL } from '../../config';
+import { apiGet, apiDelete } from '../../api';
 
 
 function ListTeachers() {
@@ -16,13 +16,8 @@ function ListTeachers() {
 
   const fetchTeachers = async () => {
     try {
-      const response = await fetch(`${BASE_URL}api/teachers`);
-      if (response.ok) {
-        const data = await response.json();
-        setTeachers(data);
-      } else {
-        console.error('Failed to fetch teachers');
-      }
+      const data = await apiGet('api/teachers');
+      setTeachers(data);
     } catch (error) {
       console.error('Error fetching teachers:', error);
     }
@@ -45,12 +40,7 @@ function ListTeachers() {
       if (window.confirm(`Delete ${selected.length} teacher(s)?`)) {
         try {
           for (const id of selected) {
-            const response = await fetch(`${BASE_URL}api/teachers/${id}`, {
-              method: 'DELETE',
-            });
-            if (!response.ok) {
-              console.error(`Failed to delete teacher ${id}`);
-            }
+            await apiDelete(`api/teachers/${id}`);
           }
           setSelected([]);
           fetchTeachers(); // Refetch after deletion

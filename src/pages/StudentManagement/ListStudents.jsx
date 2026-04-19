@@ -1,7 +1,7 @@
 import { Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, TextField, Box, Chip, Checkbox, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import { BASE_URL } from '../../config';
+import { apiGet, apiDelete } from '../../api';
 
 function ListStudents() {
   const [search, setSearch] = useState('');
@@ -9,6 +9,8 @@ function ListStudents() {
   const [students, setStudents] = useState([]);
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedBatch, setSelectedBatch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,27 +19,28 @@ function ListStudents() {
 
   const fetchStudents = async () => {
     try {
-      const response = await fetch(`${BASE_URL}api/students`);
-      if (response.ok) {
-        const data = await response.json();
-        setStudents(data);
-      } else {
-        console.error('Failed to fetch students');
-      }
+      setLoading(true);
+      setError(null);
+      const data = await apiGet('api/students');
+      setStudents(data || []);
     } catch (error) {
       console.error('Error fetching students:', error);
+      setError('Failed to load students. Please check if the backend is running.');
+      setStudents([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSelect = (id) => {
-    setSelected(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
+    setSelected((prevSelected) =>
+      prevSelected.includes(id) ? prevSelected.filter((sid) => sid !== id) : [...prevSelected, id]
+    );
   };
 
   const handleEdit = () => {
     if (selected.length === 1) {
       navigate(`/students/edit/${selected[0]}`);
-    } else {
-      alert('Please select one student to edit.');
     }
   };
 
@@ -46,12 +49,7 @@ function ListStudents() {
       if (window.confirm(`Delete ${selected.length} student(s)?`)) {
         try {
           for (const id of selected) {
-            const response = await fetch(`${BASE_URL}api/students/${id}`, {
-              method: 'DELETE',
-            });
-            if (!response.ok) {
-              console.error(`Failed to delete student ${id}`);
-            }
+            await apiDelete(`api/students/${id}`);
           }
           setSelected([]);
           fetchStudents(); // Refetch after deletion
@@ -76,6 +74,14 @@ function ListStudents() {
     const matchesBatch = selectedBatch === '' || student.batch === selectedBatch;
     return matchesSearch && matchesClass && matchesBatch;
   });
+
+  if (loading) {
+    return <Typography variant="h6" align="center" sx={{ mt: 4 }}>Loading students...</Typography>;
+  }
+
+  if (error) {
+    return <Typography variant="h6" align="center" sx={{ mt: 4, color: 'error.main' }}>{error}</Typography>;
+  }
 
   return (
     <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', p: 2 }}>
