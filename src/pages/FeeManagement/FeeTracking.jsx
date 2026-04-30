@@ -1,7 +1,8 @@
-import { Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Box, Select, MenuItem, FormControl, InputLabel, IconButton } from '@mui/material';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { apiGet } from '../../api';
+import { apiGet, downloadFile } from '../../api';
 import AddFee from './AddFee';
 
 function FeeTracking() {
@@ -188,6 +189,8 @@ function FeeTracking() {
                 <TableCell>Payment Date</TableCell>
                 <TableCell>Transaction ID</TableCell>
                 <TableCell>Mode of Payment</TableCell>
+                <TableCell>Amount</TableCell>
+                <TableCell>Receipt</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -198,6 +201,12 @@ function FeeTracking() {
                   <TableCell>{fee.paymentDate}</TableCell>
                   <TableCell>{fee.transactionId}</TableCell>
                   <TableCell>{fee.modeOfPay}</TableCell>
+                  <TableCell>{fee.amount}</TableCell>
+                  <TableCell>
+                    <IconButton onClick={() => downloadFile(`api/receipt/${fee.id}`, `receipt.pdf`)}>
+                      <PictureAsPdfIcon />
+                    </IconButton>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

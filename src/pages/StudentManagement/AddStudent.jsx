@@ -12,8 +12,7 @@ function AddStudent() {
     address: '',
     email: '',
     batch: '',
-    cls_id: '',
-    school_id: ''
+    cls_id: ''
   });
   const [classes, setClasses] = useState([]);
   const [schools, setSchools] = useState([]);
@@ -140,21 +139,6 @@ function AddStudent() {
               {classes.map((cls) => (
                 <MenuItem key={cls.id} value={cls.id}>
                   {cls.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth required>
-            <InputLabel>School</InputLabel>
-            <Select
-              name="school_id"
-              value={newStudent.school_id}
-              onChange={handleInputChange}
-              sx={{ bgcolor: 'white', borderRadius: 1 }}
-            >
-              {schools.map((school) => (
-                <MenuItem key={school.id} value={school.id}>
-                  {school.name}
                 </MenuItem>
               ))}
             </Select>

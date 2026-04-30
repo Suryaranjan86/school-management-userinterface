@@ -9,6 +9,7 @@ function AddFee({ open, onClose, selectedStudent, selectedClass, selectedBatch, 
     payYear: '',
     paymentDate: '',
     transactionId: '',
+    amount: 0.0,
     modeOfPay: 'ONLINE'
   });
 
@@ -28,6 +29,7 @@ function AddFee({ open, onClose, selectedStudent, selectedClass, selectedBatch, 
         payYear: '',
         paymentDate: '',
         transactionId: '',
+        amount: 0.0,
         modeOfPay: 'ONLINE'
       });
       onFeeAdded();
@@ -119,6 +121,16 @@ function AddFee({ open, onClose, selectedStudent, selectedClass, selectedBatch, 
           onChange={(e) => setNewFee({ ...newFee, transactionId: e.target.value })}
           fullWidth
           sx={{ mt: 2, bgcolor: 'white', borderRadius: 1 }}
+        />
+        <TextField
+          label="Amount"
+          name="amount"
+          type="number"
+          value={newFee.amount}
+          onChange={(e) => setNewFee({ ...newFee, amount: parseFloat(e.target.value) || 0.0 })}
+          fullWidth
+          sx={{ mt: 2, bgcolor: 'white', borderRadius: 1 }}
+          inputProps={{ step: "0.01" }}
         />
         <FormControl fullWidth sx={{ mt: 2 }}>
           <InputLabel>Mode of Payment</InputLabel>

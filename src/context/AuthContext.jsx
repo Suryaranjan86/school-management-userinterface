@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }) => {
        localStorage.setItem('school_id', data.schoolId);
 
       // Fetch school details
-      const schoolData = await apiGet(`api/schools/sch-1`);
+      const schoolData = await apiGet(`api/schools`);
       setSchool(schoolData);
       localStorage.setItem('school', JSON.stringify(schoolData));
 

@@ -52,3 +52,30 @@ export const apiPut = (endpoint, data) =>
 
 export const apiDelete = (endpoint) =>
   apiCall(endpoint, { method: 'DELETE' });
+
+export const downloadFile = async (endpoint, filename) => {
+  const schoolId = localStorage.getItem('school_id');
+  const headers = {
+    'X-School-Id': schoolId || '',
+  };
+
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    method: 'GET',
+    headers,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to download file: ${response.status}`);
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename || 'download';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
