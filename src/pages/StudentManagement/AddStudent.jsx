@@ -12,6 +12,7 @@ function AddStudent() {
     address: '',
     email: '',
     batch: '',
+    gender: '',
     cls_id: ''
   });
   const [classes, setClasses] = useState([]);
@@ -128,6 +129,18 @@ function AddStudent() {
             required
             sx={{ bgcolor: 'white', borderRadius: 1 }}
           />
+          <FormControl fullWidth required>
+            <InputLabel>Gender</InputLabel>
+            <Select
+              name="gender"
+              value={newStudent.gender}
+              onChange={handleInputChange}
+              sx={{ bgcolor: 'white', borderRadius: 1 }}
+            >
+              <MenuItem value="Male">Male</MenuItem>
+              <MenuItem value="Female">Female</MenuItem>
+            </Select>
+          </FormControl>
           <FormControl fullWidth required>
             <InputLabel>Class</InputLabel>
             <Select

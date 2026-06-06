@@ -13,6 +13,7 @@ function EditStudent() {
     address: '',
     email: '',
     batch: '',
+    gender: '',
     cls_id: '',
     school_id: ''
   });
@@ -130,7 +131,7 @@ function EditStudent() {
             fullWidth
             sx={{ bgcolor: 'white', borderRadius: 1 }}
           />
-          <TextField
+           <TextField
             label="Batch"
             name="batch"
             value={student.batch}
@@ -138,6 +139,18 @@ function EditStudent() {
             fullWidth
             sx={{ bgcolor: 'white', borderRadius: 1 }}
           />
+          <FormControl fullWidth>
+            <InputLabel>Gender</InputLabel>
+            <Select
+              name="gender"
+              value={student.gender}
+              onChange={handleInputChange}
+              sx={{ bgcolor: 'white', borderRadius: 1 }}
+            >
+              <MenuItem value="Male">Male</MenuItem>
+              <MenuItem value="Female">Female</MenuItem>
+            </Select>
+          </FormControl>
           <FormControl fullWidth>
             <InputLabel>Class</InputLabel>
             <Select
