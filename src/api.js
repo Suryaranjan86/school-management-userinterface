@@ -79,3 +79,48 @@ export const downloadFile = async (endpoint, filename) => {
   window.URL.revokeObjectURL(url);
 };
 
+/**
+ * Open a file response from the API in a new browser tab/window instead of forcing download.
+ * This is useful for PDFs that should be displayed to the user.
+ * The blob URL is revoked after a short timeout to allow the new tab to load the resource.
+ */
+export const openFileInNewTab = async (endpoint) => {
+  const schoolId = localStorage.getItem('school_id');
+  const headers = {
+    'X-School-Id': schoolId || '',
+  };
+
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    method: 'GET',
+    headers,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to open file: ${response.status}`);
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+
+  // Open the blob URL in a new tab. Do not set the download attribute so the browser will try to render it.
+  const newWindow = window.open(url, '_blank');
+  if (!newWindow) {
+    // Popup blocked — fall back to forcing a download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'file';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Revoke after a delay to ensure the new tab has time to load the resource
+  setTimeout(() => {
+    try {
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      // ignore
+    }
+  }, 15000);
+};
+

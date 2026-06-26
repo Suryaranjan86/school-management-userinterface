@@ -1,6 +1,6 @@
-import { Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, TextField, Box, Chip, Checkbox, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, TextField, Box, Checkbox, FormControl, InputLabel, Select, MenuItem, Card, CardContent } from '@mui/material';
 import { useState, useEffect } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { apiGet, apiDelete } from '../../api';
 
 function ListStudents() {
@@ -8,7 +8,7 @@ function ListStudents() {
   const [selected, setSelected] = useState([]);
   const [students, setStudents] = useState([]);
   const [selectedClass, setSelectedClass] = useState('');
-  const [selectedBatch, setSelectedBatch] = useState('');
+  const [selectedAcademicYear, setselectedAcademicYear] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -60,20 +60,33 @@ function ListStudents() {
     }
   };
 
-  // Get unique classes and batches
-  const uniqueClasses = [...new Set(students.map(student => student.cls?.id).filter(Boolean))].map(id => {
-    const student = students.find(s => s.cls?.id === id);
-    return { id, name: student.cls.name };
-  });
+   // Get unique classes and academicYeares
+   const uniqueClasses = [...new Set(students.map(student => student.clsId).filter(Boolean))].map(id => {
+     const student = students.find(s => s.clsId === id);
+     return { id, name: student.clsName };
+   });
 
-  const uniqueBatches = [...new Set(students.map(student => student.batch).filter(Boolean))];
+   const uniqueAcademicYear = [...new Set(students.map(student => student.academicYear).filter(Boolean))];
 
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(search.toLowerCase());
-    const matchesClass = selectedClass === '' || student.cls?.id === selectedClass;
-    const matchesBatch = selectedBatch === '' || student.batch === selectedBatch;
-    return matchesSearch && matchesClass && matchesBatch;
-  });
+   const filteredStudents = students.filter(student => {
+     const matchesSearch = student.name.toLowerCase().includes(search.toLowerCase());
+     const matchesClass = selectedClass === '' || student.clsId === selectedClass;
+     const matchesAcademicYear = selectedAcademicYear === '' || student.academicYear === selectedAcademicYear;
+     return matchesSearch && matchesClass && matchesAcademicYear;
+   });
+
+  const formatDate = (value) => {
+    if (!value) return '';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+  };
 
   if (loading) {
     return <Typography variant="h6" align="center" sx={{ mt: 4 }}>Loading students...</Typography>;
@@ -86,140 +99,150 @@ function ListStudents() {
   return (
     <Box sx={{ bgcolor: '#f8f9fa', minHeight: '100vh', p: 2 }}>
       <Container>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
-            Students
-          </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+              Students
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#666' }}>
+              Browse and manage student records in a clean table view.
+            </Typography>
+          </Box>
           <Button
             variant="contained"
-            sx={{ bgcolor: '#7d3bed', '&:hover': { bgcolor: '#6a2fb8' } }}
+            sx={{ bgcolor: '#7d3bed', '&:hover': { bgcolor: '#6a2fb8' }, textTransform: 'none' }}
             onClick={() => navigate('/students/add')}
           >
             Add Student
           </Button>
         </Box>
-        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-          <TextField
-            label="Search by Name"
-            variant="outlined"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            sx={{ width: 300, bgcolor: 'white', borderRadius: 1 }}
-          />
-          <FormControl sx={{ minWidth: 200, bgcolor: 'white', borderRadius: 1 }}>
-            <InputLabel>Filter by Class</InputLabel>
-            <Select
-              value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
-              label="Filter by Class"
-            >
-              <MenuItem value="">
-                <em>All Classes</em>
-              </MenuItem>
-              {uniqueClasses.map((cls) => (
-                <MenuItem key={cls.id} value={cls.id}>
-                  {cls.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl sx={{ minWidth: 200, bgcolor: 'white', borderRadius: 1 }}>
-            <InputLabel>Filter by Batch</InputLabel>
-            <Select
-              value={selectedBatch}
-              onChange={(e) => setSelectedBatch(e.target.value)}
-              label="Filter by Batch"
-            >
-              <MenuItem value="">
-                <em>All Batches</em>
-              </MenuItem>
-              {uniqueBatches.map((batch) => (
-                <MenuItem key={batch} value={batch}>
-                  {batch}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-        <TableContainer component={Paper} sx={{ borderRadius: 1 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    checked={selected.length === students.length}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelected(students.map(student => student.id));
-                      } else {
-                        setSelected([]);
-                      }
-                    }}
-                  />
-                </TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Father Name</TableCell>
-                <TableCell>Mother Name</TableCell>
-                <TableCell>Date of Birth</TableCell>
-                <TableCell>Address</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Batch</TableCell>
-                <TableCell>Class</TableCell>
-                <TableCell>School</TableCell>
-                <TableCell>Fee</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredStudents.map((student) => (
-                <TableRow key={student.id} selected={selected.includes(student.id)}>
-                  <TableCell padding="checkbox">
+
+        <Card sx={{ mb: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
+              <TextField
+                label="Search by Name"
+                variant="outlined"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                sx={{ minWidth: 280, flex: 1, bgcolor: 'white', borderRadius: 1 }}
+              />
+              <FormControl sx={{ minWidth: 220, flex: 1, bgcolor: 'white', borderRadius: 1 }}>
+                <InputLabel>Filter by Class</InputLabel>
+                <Select
+                  value={selectedClass}
+                  onChange={(e) => setSelectedClass(e.target.value)}
+                  label="Filter by Class"
+                >
+                  <MenuItem value="">
+                    <em>All Classes</em>
+                  </MenuItem>
+                  {uniqueClasses.map((cls) => (
+                    <MenuItem key={cls.id} value={cls.id}>
+                      {cls.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl sx={{ minWidth: 220, flex: 1, bgcolor: 'white', borderRadius: 1 }}>
+                <InputLabel>Filter by Academic Year</InputLabel>
+                <Select
+                  value={selectedAcademicYear}
+                  onChange={(e) => setselectedAcademicYear(e.target.value)}
+                  label="Filter by Academic Year"
+                >
+                  <MenuItem value="">
+                    <em>All Academic Years</em>
+                  </MenuItem>
+                  {uniqueAcademicYear.map((academicYear) => (
+                    <MenuItem key={academicYear} value={academicYear}>
+                      {academicYear}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          </CardContent>
+        </Card>
+
+        <Card sx={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+          <TableContainer component={Paper} sx={{ borderRadius: 1, overflowX: 'auto' }}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ bgcolor: '#7d3bed' }}>
+                  <TableCell padding="checkbox" sx={{ color: 'white' }}>
                     <Checkbox
-                      checked={selected.includes(student.id)}
-                      onChange={() => handleSelect(student.id)}
+                      checked={selected.length === students.length && students.length > 0}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelected(students.map(student => student.studentId));
+                        } else {
+                          setSelected([]);
+                        }
+                      }}
+                      sx={{ color: 'white' }}
                     />
                   </TableCell>
-                  <TableCell>{student.name}</TableCell>
-                  <TableCell>{student.fatherName}</TableCell>
-                  <TableCell>{student.motherName}</TableCell>
-                  <TableCell>{student.dateOfBirth}</TableCell>
-                  <TableCell>{student.address}</TableCell>
-                  <TableCell>{student.email}</TableCell>
-                  <TableCell>{student.batch}</TableCell>
-                  <TableCell>{student.cls ? student.cls.name : ''}</TableCell>
-                  <TableCell>{student.school ? student.school.name : ''}</TableCell>
-                  <TableCell>
-                    <RouterLink
-                      to={`/fees?studentId=${student.id}&class=${student.cls?.id || ''}&batch=${student.batch || ''}`}
-                      style={{
-                        color: '#7d3bed',
-                        cursor: 'pointer',
-                        textDecoration: 'none'
-                      }}
-                      onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
-                      onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
-                    >
-                      View Fee
-                    </RouterLink>
-                  </TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 600 }}>Student Name</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 600 }}>Standard</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 600 }}>Academic Year</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 600 }}>Gender</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 600 }}>Date of Birth</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 600 }}>Add Fee</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+              </TableHead>
+              <TableBody>
+                {filteredStudents.map((student) => (
+                  <TableRow key={student.studentId} sx={{ '&:hover': { bgcolor: '#f5f5f5' } }} selected={selected.includes(student.studentId)}>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={selected.includes(student.studentId)}
+                        onChange={() => handleSelect(student.studentId)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="text"
+                        onClick={() => navigate(`/students/${student.studentId}`, { state: { student } })}
+                        sx={{ textTransform: 'none', padding: 0, minWidth: 0, justifyContent: 'flex-start' }}
+                      >
+                        {student.name}{student.classRollNo ? ` (Roll: ${student.classRollNo})` : ''}
+                      </Button>
+                    </TableCell>
+                    <TableCell>{student.clsName}</TableCell>
+                    <TableCell>{student.academicYear}</TableCell>
+                    <TableCell>{student.gender || ''}</TableCell>
+                    <TableCell>{formatDate(student.dateOfBirth)}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => navigate(`/add-fee?studentId=${student.studentId}&name=${encodeURIComponent(student.name)}&class=${encodeURIComponent(student.clsName)}&classId=${student.clsId || ''}&academicYear=${encodeURIComponent(student.academicYear || '')}`)}
+                        sx={{ bgcolor: '#7d3bed', '&:hover': { bgcolor: '#6a2fb8' }, textTransform: 'none' }}
+                      >
+                        Add Fee
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+
+        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1, flexWrap: 'wrap' }}>
           <Button
             variant="outlined"
             onClick={handleEdit}
             disabled={selected.length !== 1}
-            sx={{ borderColor: '#7d3bed', color: '#7d3bed', '&:hover': { borderColor: '#6a2fb8', color: '#6a2fb8' } }}
+            sx={{ borderColor: '#7d3bed', color: '#7d3bed', '&:hover': { borderColor: '#6a2fb8', color: '#6a2fb8' }, textTransform: 'none' }}
           >
             Edit
           </Button>
           <Button
             variant="contained"
             onClick={handleDelete}
-            disabled={selected.length === 0}
-            sx={{ bgcolor: '#e63946', '&:hover': { bgcolor: '#d62839' } }}
+            sx={{ bgcolor: '#d32f2f', '&:hover': { bgcolor: '#c62828' }, textTransform: 'none' }}
           >
             Delete
           </Button>

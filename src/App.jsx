@@ -6,18 +6,13 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
-import ListTeachers from './pages/TeacherManagement/ListTeachers';
-import AddTeacher from './pages/TeacherManagement/AddTeacher';
-import EditTeacher from './pages/TeacherManagement/EditTeacher';
 import ListStudents from './pages/StudentManagement/ListStudents';
 import AddStudent from './pages/StudentManagement/AddStudent';
 import EditStudent from './pages/StudentManagement/EditStudent';
+import StudentDetails from './pages/StudentManagement/StudentDetails';
+import AddFee from './pages/FeeManagement/AddFee';
 import FeeTracking from './pages/FeeManagement/FeeTracking';
-import Payroll from './pages/Payroll';
-import Attendance from './pages/Attendance';
-import Leave from './pages/Leave';
-import Recruitment from './pages/Recruitment';
-import Performance from './pages/Performance';
+import UnpaidFeeTracking from './pages/FeeManagement/UnpaidFeeTracking';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 
@@ -41,18 +36,13 @@ function App() {
                       <Header />
                       <Routes>
                         <Route path="/" element={<Dashboard />} />
-                        <Route path="/teachers" element={<ListTeachers />} />
-                        <Route path="/teachers/add" element={<AddTeacher />} />
-                        <Route path="/teachers/edit/:id" element={<EditTeacher />} />
                         <Route path="/students" element={<ListStudents />} />
                         <Route path="/students/add" element={<AddStudent />} />
                         <Route path="/students/edit/:id" element={<EditStudent />} />
+                        <Route path="/students/:id" element={<StudentDetails />} />
+                        <Route path="/add-fee" element={<AddFee />} />
                         <Route path="/fees" element={<FeeTracking />} />
-                        <Route path="/payroll" element={<Payroll />} />
-                        <Route path="/attendance" element={<Attendance />} />
-                        <Route path="/leave" element={<Leave />} />
-                        <Route path="/recruitment" element={<Recruitment />} />
-                        <Route path="/performance" element={<Performance />} />
+                        <Route path="/unpaid-fees" element={<UnpaidFeeTracking />} />
                       </Routes>
                     </Box>
                   </Box>
