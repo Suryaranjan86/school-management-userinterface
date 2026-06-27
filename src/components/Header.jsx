@@ -3,6 +3,7 @@ import { AccountCircle, Logout as LogoutIcon } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { BASE_URL } from '../config';
 
 function Header() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -10,34 +11,52 @@ function Header() {
   const navigate = useNavigate();
   const { user, school, logout } = useAuth();
 
-  // Fetch the image from backend when logoUrl changes
+  // Fetch the image from backend when school changes
   useEffect(() => {
+    console.log('useEffect triggered! School:', school);
+    
     const fetchLogoImage = async () => {
-      if (school?.logoUrl) {
-        try {
-          const schoolId = localStorage.getItem('school_id');
-          // Fetch the image as a blob from the static resources
-          const response = await fetch(`http://localhost:8080${school.logoUrl}`, {
-            method: 'GET',
-            headers: {
-              'X-School-Id': schoolId || '',
-            },
-          });
+      const schoolData = Array.isArray(school) ? school[0] : school;
+      console.log('fetchLogoImage called, logoUrl:', schoolData?.logoUrl);
+      
+      if (!schoolData || !schoolData.logoUrl) {
+        console.log('School or logoUrl is missing');
+        return;
+      }
+      
+      try {
+        const schoolId = localStorage.getItem('school_id');
+        const logoUrl = `${BASE_URL.replace(/\/$/, '')}${schoolData.logoUrl}`;
+        console.log('Fetching logo from:', logoUrl);
+        
+        // Fetch the image as a blob from the static resources
+        const response = await fetch(logoUrl, {
+          method: 'GET',
+          headers: {
+            'X-School-Id': schoolId || '',
+          },
+        });
 
-          if (response.ok) {
-            const blob = await response.blob();
-            const blobUrl = window.URL.createObjectURL(blob);
-            setLogoImage(blobUrl);
-          } else {
-            console.warn('Failed to fetch logo image:', response.status);
-          }
-        } catch (error) {
-          console.error('Error fetching logo image:', error);
+        console.log('Fetch response status:', response.status, response.statusText);
+        
+        if (response.ok) {
+          const blob = await response.blob();
+          console.log('Blob received, size:', blob.size);
+          const blobUrl = window.URL.createObjectURL(blob);
+          setLogoImage(blobUrl);
+          console.log('Logo set successfully');
+        } else {
+          const errorText = await response.text();
+          console.warn('Failed to fetch logo image:', response.status, errorText);
         }
+      } catch (error) {
+        console.error('Error fetching logo image:', error);
       }
     };
 
-    fetchLogoImage();
+    if (school) {
+      fetchLogoImage();
+    }
 
     // Cleanup blob URL on component unmount
     return () => {
@@ -45,7 +64,7 @@ function Header() {
         window.URL.revokeObjectURL(logoImage);
       }
     };
-  }, [school?.logoUrl]);
+  }, [school]);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -81,27 +100,39 @@ function Header() {
           )}
           <Box>
             <Typography variant="h6" component="div">
-              HRMS
+              {(Array.isArray(school) ? school[0] : school)?.name || 'School Name'}
             </Typography>
             {school && (
-              <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                {school.name} • {school.address}
+              <Typography variant="caption" sx={{ opacity: 0.9, display: 'block' }}>
+                {(Array.isArray(school) ? school[0] : school)?.address}
               </Typography>
             )}
           </Box>
         </Box>
+
+        <Box sx={{ textAlign: 'right', mr: 2, minWidth: 160 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: 1 }}>
+            SMS
+          </Typography>
+          <Typography variant="caption" sx={{ opacity: 0.8, display: 'block' }}>
+            School Management Software
+          </Typography>
+        </Box>
+
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {user && (
-            <Typography variant="body2" sx={{ mr: 1 }}>
-              Welcome, {user.username}
-            </Typography>
-          )}
           <IconButton color="inherit" onClick={handleMenuOpen}>
             <AccountCircle />
           </IconButton>
           <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
             <MenuItem disabled>
-              <Typography variant="body2">Logged in as: {user?.username}</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                <Typography variant="body2">Logged in as: {user?.username}</Typography>
+                {user?.role && (
+                  <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                    Role: {user.role}
+                  </Typography>
+                )}
+              </Box>
             </MenuItem>
             <MenuItem onClick={handleLogout}>
               <LogoutIcon sx={{ mr: 1, fontSize: 20 }} />

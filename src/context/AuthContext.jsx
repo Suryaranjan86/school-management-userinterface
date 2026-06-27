@@ -1,5 +1,6 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import { apiGet } from '../api';
+import { BASE_URL } from '../config';
 
 const AuthContext = createContext();
 
@@ -10,8 +11,12 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is already logged in (from localStorage)
   useEffect(() => {
+    console.log('AuthContext useEffect - Checking localStorage');
     const storedUser = localStorage.getItem('user');
     const storedSchool = localStorage.getItem('school');
+    console.log('Stored user:', storedUser);
+    console.log('Stored school:', storedSchool);
+    
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setUser(user);
@@ -20,7 +25,11 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('school_id', user.schoolId);
       }
       if (storedSchool) {
-        setSchool(JSON.parse(storedSchool));
+        const parsedSchool = JSON.parse(storedSchool);
+        console.log('Setting school from localStorage:', parsedSchool);
+        setSchool(parsedSchool);
+      } else {
+        console.log('No stored school found');
       }
     }
     setLoading(false);
@@ -28,7 +37,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await fetch('http://localhost:8080/api/users/login', {
+      const response = await fetch(`${BASE_URL}api/users/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -47,20 +56,25 @@ export const AuthProvider = ({ children }) => {
          username: data.username,
          userId: data.userId,
          schoolId: data.schoolId,
+         role: data.role,
        });
        localStorage.setItem('user', JSON.stringify({
          username: data.username,
          userId: data.userId,
          schoolId: data.schoolId,
+         role: data.role,
        }));
 
        // Store school_id for API header
        localStorage.setItem('school_id', data.schoolId);
 
       // Fetch school details
+      console.log('Fetching school details...');
       const schoolData = await apiGet(`api/schools`);
+      console.log('School data received:', schoolData);
       setSchool(schoolData);
       localStorage.setItem('school', JSON.stringify(schoolData));
+      console.log('School saved to localStorage');
 
       return true;
     } catch (error) {
