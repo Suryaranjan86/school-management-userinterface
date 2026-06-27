@@ -13,6 +13,11 @@ RUN npm run build
 ## Production image
 FROM nginx:stable-alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
+
+# copy entrypoint that will write runtime env into a JS file consumed by the SPA
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
